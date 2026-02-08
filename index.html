@@ -6,39 +6,14 @@
 <title>Be My Valentine 💘</title>
 
 <style>
-  * {
-    box-sizing: border-box;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  }
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
+  body { margin: 0; height: 100vh; background: linear-gradient(135deg, #ffdde1, #ee9ca7); overflow: hidden; }
 
-  body {
-    margin: 0;
-    height: 100vh;
-    background: linear-gradient(135deg, #ffdde1, #ee9ca7);
-    overflow: hidden;
-  }
+  .screen { display: none; height: 100vh; width: 100vw; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+  .active { display: flex; }
 
-  .screen {
-    display: none;
-    height: 100vh;
-    width: 100vw;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .active {
-    display: flex;
-  }
-
-  h1 {
-    color: #b3005e;
-  }
-
-  p {
-    color: #6b0038;
-  }
+  h1 { color: #b3005e; margin: 10px; }
+  p { color: #6b0038; margin: 10px; }
 
   button {
     padding: 12px 28px;
@@ -46,68 +21,41 @@
     border: none;
     border-radius: 30px;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
   }
-
-  .start-btn {
-    background: #ff4d88;
-    color: white;
-  }
+  .start-btn { background: #ff4d88; color: white; }
 
   /* ===== GAME AREA ===== */
-  #gameArea {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-  }
+  #gameArea { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+  #cupid { position: absolute; bottom: 20px; left: 20px; font-size: 64px; }
 
-  #cupid {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    font-size: 64px;
-  }
-  
   .heart-arrow {
-  position: absolute;
-  font-size: 84px;          /* 3x visual size */
-  width: 110px;             /* big click area */
-  height: 110px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-}
-  .heart-arrow:active {
-  transform: scale(0.9);
-}
-
-
-
-  /* QUESTION */
-  .yes-btn {
-    background: #ff4d88;
-    color: white;
-    margin-right: 20px;
-  }
-
-  .no-btn {
     position: absolute;
-    background: white;
-    color: #ff4d88;
-    border: 2px solid #ff4d88;
+    font-size: 84px;   /* desktop size */
+    width: 110px;      /* clickable hitbox */
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
   }
 
-  /* FINAL */
-  .celebrate {
-    font-size: 60px;
-    animation: pulse 1s infinite alternate;
-  }
+  /* QUESTION SCREEN */
+  .yes-btn { background: #ff4d88; color: white; margin-right: 20px; }
+  .no-btn { position: absolute; background: white; color: #ff4d88; border: 2px solid #ff4d88; }
 
-  @keyframes pulse {
-    from { transform: scale(1); }
-    to { transform: scale(1.1); }
+  /* FINAL SCREEN */
+  .celebrate { font-size: 60px; animation: pulse 1s infinite alternate; }
+
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+  /* ===== MOBILE OPTIMIZATION ===== */
+  @media (max-width: 768px) {
+    #cupid { font-size: 42px; }
+    .heart-arrow { font-size: 48px; width: 72px; height: 72px; }
+    button { font-size: 16px; padding: 10px 20px; }
   }
 </style>
 </head>
@@ -126,7 +74,6 @@
   <h1>Catch 10 Heart Arrows 💘</h1>
   <p>Click the hearts Cupid shoots!</p>
   <p><strong>Hearts:</strong> <span id="score">0</span>/10</p>
-
   <div id="gameArea">
     <div id="cupid">👼🏹</div>
   </div>
@@ -145,112 +92,118 @@
 <div id="screen4" class="screen">
   <div class="celebrate">💖💖💖</div>
   <h1>YAY!!</h1>
-  <p>I'm really glad you said yes 🥰  
-  <br/>Happy Propose Day, Jaan 💌</p>
+  <p>I'm really glad you said yes 🥰<br/>Happy Valentine’s Day, Jaan 💌</p>
 </div>
 
 <script>
-  const screens = document.querySelectorAll(".screen");
-  const gameArea = document.getElementById("gameArea");
-  const scoreEl = document.getElementById("score");
+const screens = document.querySelectorAll(".screen");
+const gameArea = document.getElementById("gameArea");
+const scoreEl = document.getElementById("score");
+const cupid = document.getElementById("cupid");
 
-  let arrows = [];
-  let score = 0;
-  let running = false;
+let arrows = [];
+let score = 0;
+let running = false;
 
-  function showScreen(id) {
-    screens.forEach(s => s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-  }
+// Show screen helper
+function showScreen(id) {
+  screens.forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
 
-  function startGame() {
-    showScreen("screen2");
-    running = true;
-    shootLoop();
-    requestAnimationFrame(update);
-  }
+// Start game
+function startGame() {
+  showScreen("screen2");
+  running = true;
+  shootLoop();
+  requestAnimationFrame(update);
+}
 
-  function shootLoop() {
-    if (!running) return;
+// Shoot hearts
+function shootLoop() {
+  if (!running) return;
 
-    const heart = document.createElement("div");
-    heart.className = "heart-arrow";
-    heart.innerText = "💖";
+  const heart = document.createElement("div");
+  heart.className = "heart-arrow";
+  heart.innerText = "💖";
 
-	const startX = 80;
-	const startY = window.innerHeight - 160;
+  const isMobile = window.innerWidth < 768;
+  const startX = isMobile ? 40 : 80;
+  const startY = isMobile ? window.innerHeight - 120 : window.innerHeight - 160;
 
+  heart.style.left = startX + "px";
+  heart.style.top = startY + "px";
 
-    heart.style.left = startX + "px";
-    heart.style.top = startY + "px";
+  gameArea.appendChild(heart);
 
-    gameArea.appendChild(heart);
+  const velocityX = Math.random() * 1.5 + 1.5;
+  const velocityY = Math.random() * 1.5 + 1.5;
 
-    const velocityX = Math.random() * 1.5 + 1.5;
-    const velocityY = Math.random() * 1.5 + 1.5;
+  const arrow = { el: heart, x: startX, y: startY, vx: velocityX, vy: velocityY };
+  arrows.push(arrow);
 
-    const arrow = {
-      el: heart,
-      x: startX,
-      y: startY,
-      vx: velocityX,
-      vy: velocityY
-    };
+  heart.onclick = () => {
+    score++;
+    scoreEl.innerText = score;
+    heart.remove();
+    arrows = arrows.filter(a => a !== arrow);
 
-    arrows.push(arrow);
-
-    heart.onclick = () => {
-      score++;
-      scoreEl.innerText = score;
-      heart.remove();
-      arrows = arrows.filter(a => a !== arrow);
-
-      if (score >= 10) {
-        running = false;
-        arrows.forEach(a => a.el.remove());
-        setTimeout(() => showScreen("screen3"), 600);
-      }
-    };
-
-    setTimeout(shootLoop, 900);
-  }
-
-  function update() {
-    arrows.forEach(a => {
-      a.x += a.vx;
-      a.y -= a.vy;
-      a.el.style.left = a.x + "px";
-      a.el.style.top = a.y + "px";
-
-      if (a.x > window.innerWidth || a.y < -50) {
-        a.el.remove();
-        arrows = arrows.filter(x => x !== a);
-      }
-    });
-
-    if (running) requestAnimationFrame(update);
-  }
-
-  // NO BUTTON CHAOS
-  const noBtn = document.getElementById("noBtn");
-  let noCount = 0;
-
-  noBtn.addEventListener("mouseenter", moveNo);
-  noBtn.addEventListener("click", moveNo);
-
-  function moveNo() {
-    noCount++;
-    noBtn.style.left = Math.random() * (window.innerWidth - 120) + "px";
-    noBtn.style.top = Math.random() * (window.innerHeight - 120) + "px";
-
-    if (noCount >= 7) {
-      noBtn.innerText = "🥺Please?";
+    if (score >= 10) {
+      running = false;
+      arrows.forEach(a => a.el.remove());
+      setTimeout(() => showScreen("screen3"), 600);
     }
-  }
+  };
 
-  function yesClicked() {
-    showScreen("screen4");
+  setTimeout(shootLoop, 900);
+}
+
+// Animate arrows
+function update() {
+  arrows.forEach(a => {
+    a.x += a.vx;
+    a.y -= a.vy;
+    a.el.style.left = a.x + "px";
+    a.el.style.top = a.y + "px";
+    if (a.x > window.innerWidth || a.y < -50) {
+      a.el.remove();
+      arrows = arrows.filter(x => x !== a);
+    }
+  });
+
+  if (running) requestAnimationFrame(update);
+}
+
+// NO BUTTON (desktop + mobile)
+const noBtn = document.getElementById("noBtn");
+let noCount = 0;
+
+function moveNo(e) {
+  if (e) e.preventDefault(); // stops tap delay
+  noCount++;
+
+  noBtn.style.left = Math.random() * (window.innerWidth - 120) + "px";
+  noBtn.style.top = Math.random() * (window.innerHeight - 160) + "px";
+
+  if (noCount >= 7) {
+    noBtn.innerText = "🥺Please?"; // sad eyes emoji
   }
+}
+
+// Desktop
+noBtn.addEventListener("mouseenter", moveNo);
+noBtn.addEventListener("click", moveNo);
+// Mobile
+noBtn.addEventListener("touchstart", moveNo);
+
+function yesClicked() {
+  showScreen("screen4");
+}
+
+// Keep Cupid in place on resize
+window.addEventListener("resize", () => {
+  cupid.style.left = window.innerWidth < 768 ? "20px" : "20px";
+});
 </script>
 
 </body>
