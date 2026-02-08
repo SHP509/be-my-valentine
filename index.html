@@ -21,14 +21,12 @@
     border: none;
     border-radius: 30px;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    tap-highlight-color: transparent;
   }
   .start-btn { background: #ff4d88; color: white; }
 
   /* ===== GAME AREA ===== */
   #gameArea { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
-  #cupid { position: absolute; bottom: 20px; left: 20px; font-size: 64px; }
+  #cupid { position: absolute; left: 20px; font-size: 64px; }
 
   .heart-arrow {
     position: absolute;
@@ -111,10 +109,22 @@ function showScreen(id) {
   document.getElementById(id).classList.add("active");
 }
 
+// Keep Cupid positioned at bottom-left
+function positionCupid() {
+  const isMobile = window.innerWidth < 768;
+  const cupidSize = isMobile ? 42 : 64;
+  cupid.style.fontSize = cupidSize + "px";
+
+  const bottomOffset = window.innerHeight * 0.05; // 5% above bottom
+  cupid.style.bottom = bottomOffset + "px";
+  cupid.style.left = "20px";
+}
+
 // Start game
 function startGame() {
   showScreen("screen2");
   running = true;
+  positionCupid();
   shootLoop();
   requestAnimationFrame(update);
 }
@@ -127,9 +137,9 @@ function shootLoop() {
   heart.className = "heart-arrow";
   heart.innerText = "💖";
 
-  const isMobile = window.innerWidth < 768;
-  const startX = isMobile ? 40 : 80;
-  const startY = isMobile ? window.innerHeight - 120 : window.innerHeight - 160;
+  const cupidRect = cupid.getBoundingClientRect();
+  const startX = cupidRect.left;
+  const startY = cupidRect.top - 20; // spawn just above Cupid
 
   heart.style.left = startX + "px";
   heart.style.top = startY + "px";
@@ -186,7 +196,7 @@ function moveNo(e) {
   noBtn.style.top = Math.random() * (window.innerHeight - 160) + "px";
 
   if (noCount >= 7) {
-    noBtn.innerText = "🥺Please?"; // sad eyes emoji
+    noBtn.innerText = "🥺 Please?"; // sad eyes emoji
   }
 }
 
@@ -201,9 +211,7 @@ function yesClicked() {
 }
 
 // Keep Cupid in place on resize
-window.addEventListener("resize", () => {
-  cupid.style.left = window.innerWidth < 768 ? "20px" : "20px";
-});
+window.addEventListener("resize", positionCupid);
 </script>
 
 </body>
